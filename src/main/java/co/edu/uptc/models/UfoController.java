@@ -1,12 +1,11 @@
 package co.edu.uptc.models;
 
 import co.edu.uptc.pojos.Ufo;
-import lombok.Getter;
 
 import java.awt.Point;
 import java.util.List;
 import java.util.Random;
-@Getter
+
 public class UfoController {
     private Random random;
     private UfoSocketServer ufoSocketServer;
