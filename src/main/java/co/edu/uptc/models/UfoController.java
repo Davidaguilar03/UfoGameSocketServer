@@ -1,21 +1,22 @@
 package co.edu.uptc.models;
 
 import co.edu.uptc.pojos.Ufo;
+import lombok.Getter;
 
 import java.awt.Point;
 import java.util.List;
 import java.util.Random;
-
+@Getter
 public class UfoController {
     private Random random;
-    private UfoGameModel ufoGameModel;
+    private UfoSocketServer ufoSocketServer;
     private static final int LANDING_STRIP_X_MIN = 580;
     private static final int LANDING_STRIP_X_MAX = 660;
     private static final int LANDING_STRIP_Y_MIN = 145;
     private static final int LANDING_STRIP_Y_MAX = 195;
 
-    public UfoController(UfoGameModel ufoGameModel) {
-        this.ufoGameModel = ufoGameModel;
+    public UfoController(UfoSocketServer ufoSocketServer) {
+        this.ufoSocketServer = ufoSocketServer;
         this.random = new Random();
     }
 

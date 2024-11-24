@@ -1,16 +1,16 @@
 package co.edu.uptc.models;
 
 public class UfoRunner implements Runnable {
-    private UfoGameModel ufoGameModel;
+    private UfoSocketServer ufoSocketServer;
 
-    public UfoRunner(UfoGameModel ufoGameModel) {
-        this.ufoGameModel = ufoGameModel;
+    public UfoRunner(UfoSocketServer ufoSocketServer) {
+        this.ufoSocketServer = ufoSocketServer;
     }
 
     @Override
     public void run() {
         while (true) {
-            ufoGameModel.moveAll(); 
+            ufoSocketServer.moveAll();
             //Todo: ufoGameModel.getPresenter().updateUFOs(); 
             try {
                 Thread.sleep(20); 

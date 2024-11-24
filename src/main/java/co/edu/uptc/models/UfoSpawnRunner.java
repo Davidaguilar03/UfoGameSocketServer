@@ -4,22 +4,22 @@ import lombok.Data;
 
 @Data
 public class UfoSpawnRunner implements Runnable {
-    private UfoGameModel ufoGameModel;
+    private UfoSocketServer ufoSocketServer;
     private int createdUfos;
 
-    public UfoSpawnRunner(UfoGameModel ufoGameModel) {
-        this.ufoGameModel = ufoGameModel;
+    public UfoSpawnRunner(UfoSocketServer ufoGameModel) {
+        this.ufoSocketServer = ufoGameModel;
         createdUfos = 0;
     }
 
     @Override
     public void run() {
-        while (createdUfos < ufoGameModel.getNumberofUfos()) {
-            ufoGameModel.addUfo(ufoGameModel.getSpeed()); 
+        while (createdUfos < ufoSocketServer.getNumberofUfos()) {
+            ufoSocketServer.addUfo(ufoSocketServer.getSpeed());
             createdUfos++;
             // Todo: ufoGameModel.getPresenter().updateUFOs(); 
             try {
-                Thread.sleep(ufoGameModel.getSpawnRate()); 
+                Thread.sleep(ufoSocketServer.getSpawnRate());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
