@@ -41,7 +41,6 @@ public class UfoSocketServer {
         UfoController ufoController = new UfoController(this);
         Ufo newUfo = ufoController.createUfo(speed);
         Ufos.add(newUfo);
-        System.out.println("UFO añadido con velocidad: " + speed);
     }
 
     public void startGame() {
@@ -49,7 +48,6 @@ public class UfoSocketServer {
         moveThread.start();
         Thread spawnThread = new Thread(spawnRunner);
         spawnThread.start();
-        System.out.println("Juego iniciado.");
     }
 
     public synchronized void moveAll() {
@@ -59,7 +57,6 @@ public class UfoSocketServer {
             UfoController ufoController = new UfoController(this);
             ufoController.moveUfo(ufo, Ufos);
         }
-        System.out.println("Todos los UFOs movidos.");
     }
 
     public void startServer(int port) {
@@ -119,7 +116,6 @@ public class UfoSocketServer {
     private void sendUfoList() {
         String ufoListJson = gson.toJson(Ufos);
         clientOut.println("UFO_LIST " + ufoListJson);
-        System.out.println("Lista de UFOs enviada al cliente.");
     }
 
     private void handleNumberOfUfos(String inputLine) {
@@ -127,7 +123,6 @@ public class UfoSocketServer {
             String[] parts = inputLine.split(" ");
             int numberOfUfos = Integer.parseInt(parts[2]);
             this.numberofUfos = numberOfUfos;
-            System.out.println("Número de ovnis asignados: " + this.numberofUfos);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de mensaje inválido.");
         }
@@ -138,7 +133,6 @@ public class UfoSocketServer {
             String[] parts = inputLine.split(" ");
             int spawnRate = Integer.parseInt(parts[2]);
             this.spawnRate = spawnRate;
-            System.out.println("Tasa de aparición asignada: " + this.spawnRate);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de mensaje inválido.");
         }
@@ -149,7 +143,6 @@ public class UfoSocketServer {
             String[] parts = inputLine.split(" ");
             int speed = Integer.parseInt(parts[2]);
             this.speed = speed;
-            System.out.println("Velocidad asignada: " + this.speed);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de mensaje inválido.");
         }
@@ -169,7 +162,6 @@ public class UfoSocketServer {
     public void updateUfoCountOrder(int size) {
         if (clientOut != null) {
             clientOut.println("UPDATE_UFO_COUNT " + size);
-            System.out.println("Orden enviada al cliente para actualizar el conteo de UFOs a: " + size);
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
@@ -178,7 +170,6 @@ public class UfoSocketServer {
     public void playCrashSoundOrder() {
         if (clientOut != null) {
             clientOut.println("PLAY_CRASH_SOUND");
-            System.out.println("Orden enviada al cliente para reproducir sonido de choque.");
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
@@ -187,7 +178,6 @@ public class UfoSocketServer {
     public void incrementCrashedUfoCountOrder(int crashedUfos) {
         if (clientOut != null) {
             clientOut.println("INCREMENT_CRASHED_UFO_COUNT " + crashedUfos);
-            System.out.println("Orden enviada al cliente para incrementar el conteo de UFOs estrellados a: " + crashedUfos);
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
@@ -196,7 +186,6 @@ public class UfoSocketServer {
     public void playLandingSoundOrder() {
         if (clientOut != null) {
             clientOut.println("PLAY_LANDING_SOUND");
-            System.out.println("Orden enviada al cliente para reproducir sonido de aterrizaje.");
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
@@ -205,7 +194,6 @@ public class UfoSocketServer {
     public void incrementLandedUfoCountOrder() {
         if (clientOut != null) {
             clientOut.println("INCREMENT_LANDED_UFO_COUNT");
-            System.out.println("Orden enviada al cliente para incrementar el conteo de UFOs aterrizados.");
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
@@ -214,7 +202,6 @@ public class UfoSocketServer {
     public void updateUfosOrder() {
         if (clientOut != null) {
             clientOut.println("UPDATE_UFOS");
-            System.out.println("Orden enviada al cliente para actualizar UFOs.");
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
