@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import co.edu.uptc.pojos.Ufo;
+import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,11 +27,14 @@ public class UfoSocketServer {
     private int spawnRate;
     private int speed;
     private int numberofUfos;
+    private PrintWriter clientOut;
+    private Gson gson;
 
     public UfoSocketServer() {
         this.Ufos = new CopyOnWriteArrayList<>();
         ufoRunner = new UfoRunner(this);
         spawnRunner = new UfoSpawnRunner(this);
+        gson = new Gson();
     }
 
     public synchronized void addUfo(int speed) {
@@ -77,8 +81,9 @@ public class UfoSocketServer {
     }
 
     private void handleClient(Socket clientSocket) {
-        try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+        try {
+            clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
@@ -89,8 +94,12 @@ public class UfoSocketServer {
                     handleSpawnRate(inputLine);
                 } else if (inputLine.contains("SPEED")) {
                     handleSpeed(inputLine);
+                } else if (inputLine.contains("START_GAME")) {
+                    startGame();
+                } else if (inputLine.contains("REQUEST_UFO_LIST")) {
+                    sendUfoList();
                 } else {
-                    out.println("Eco: " + inputLine);
+                    clientOut.println("Eco: " + inputLine);
                 }
             }
         } catch (NoSuchElementException e) {
@@ -105,6 +114,12 @@ public class UfoSocketServer {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void sendUfoList() {
+        String ufoListJson = gson.toJson(Ufos);
+        clientOut.println("UFO_LIST " + ufoListJson);
+        System.out.println("Lista de UFOs enviada al cliente.");
     }
 
     private void handleNumberOfUfos(String inputLine) {
@@ -152,31 +167,56 @@ public class UfoSocketServer {
     }
 
     public void updateUfoCountOrder(int size) {
-        System.out.println("Actualizando el conteo de UFOs a: " + size);
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("UPDATE_UFO_COUNT " + size);
+            System.out.println("Orden enviada al cliente para actualizar el conteo de UFOs a: " + size);
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 
     public void playCrashSoundOrder() {
-        System.out.println("Reproduciendo sonido de choque.");
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("PLAY_CRASH_SOUND");
+            System.out.println("Orden enviada al cliente para reproducir sonido de choque.");
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 
     public void incrementCrashedUfoCountOrder(int crashedUfos) {
-        System.out.println("Incrementando el conteo de UFOs estrellados a: " + crashedUfos);
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("INCREMENT_CRASHED_UFO_COUNT " + crashedUfos);
+            System.out.println("Orden enviada al cliente para incrementar el conteo de UFOs estrellados a: " + crashedUfos);
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 
     public void playLandingSoundOrder() {
-        System.out.println("Reproduciendo sonido de aterrizaje.");
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("PLAY_LANDING_SOUND");
+            System.out.println("Orden enviada al cliente para reproducir sonido de aterrizaje.");
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 
     public void incrementLandedUfoCountOrder() {
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("INCREMENT_LANDED_UFO_COUNT");
+            System.out.println("Orden enviada al cliente para incrementar el conteo de UFOs aterrizados.");
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 
     public void updateUfosOrder() {
-        System.out.println("Actualizando UFOs.");
-        // Implementación
+        if (clientOut != null) {
+            clientOut.println("UPDATE_UFOS");
+            System.out.println("Orden enviada al cliente para actualizar UFOs.");
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
     }
 }

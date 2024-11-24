@@ -1,13 +1,16 @@
 package co.edu.uptc.pojos;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import java.awt.Rectangle;
 
 @Data
-public class Ufo {
+public class Ufo implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Point position;
     private int speed;
     private double angle;
