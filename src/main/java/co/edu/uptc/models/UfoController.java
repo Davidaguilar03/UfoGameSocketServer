@@ -65,14 +65,14 @@ public class UfoController {
 
     private void handleWallCollision(Ufo ufo, List<Ufo> allUfos) {
         removeUfo(ufo, allUfos);
-        //Todo: ufoGameModel.getPresenter().playCrashSound();
-        //Todo: ufoGameModel.getPresenter().incrementCrashedUfoCount(1);
+        ufoSocketServer.playCrashSoundOrder();
+        ufoSocketServer.incrementCrashedUfoCountOrder(1);
     }
 
     private void handleLandingStripCollision(Ufo ufo, List<Ufo> allUfos) {
         removeUfo(ufo, allUfos);
-        //Todo: ufoGameModel.getPresenter().playLandingSound();
-        //Todo: ufoGameModel.getPresenter().incrementLandedUfoCount();
+        ufoSocketServer.playLandingSoundOrder();
+        ufoSocketServer.incrementLandedUfoCountOrder();
     }
 
     private void handleUfoCollisions(Ufo ufo, List<Ufo> allUfos) {
@@ -80,8 +80,8 @@ public class UfoController {
             if (ufo != otherUfo && ufo.getBounds().intersects(otherUfo.getBounds())) {
                 removeUfo(ufo, allUfos);
                 removeUfo(otherUfo, allUfos);
-                //Todo: ufoGameModel.getPresenter().playCrashSound();
-                //Todo: ufoGameModel.getPresenter().incrementCrashedUfoCount(2);
+                ufoSocketServer.playCrashSoundOrder();
+                ufoSocketServer.incrementCrashedUfoCountOrder(2);
                 return;
             }
         }

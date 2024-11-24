@@ -17,7 +17,7 @@ public class UfoSpawnRunner implements Runnable {
         while (createdUfos < ufoSocketServer.getNumberofUfos()) {
             ufoSocketServer.addUfo(ufoSocketServer.getSpeed());
             createdUfos++;
-            // Todo: ufoGameModel.getPresenter().updateUFOs(); 
+            ufoSocketServer.updateUfosOrder();
             try {
                 Thread.sleep(ufoSocketServer.getSpawnRate());
             } catch (InterruptedException e) {

@@ -11,7 +11,7 @@ public class UfoRunner implements Runnable {
     public void run() {
         while (true) {
             ufoSocketServer.moveAll();
-            //Todo: ufoGameModel.getPresenter().updateUFOs(); 
+            ufoSocketServer.updateUfosOrder();
             try {
                 Thread.sleep(20); 
             } catch (InterruptedException e) {
