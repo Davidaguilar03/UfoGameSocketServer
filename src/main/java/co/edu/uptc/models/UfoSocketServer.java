@@ -1,9 +1,6 @@
 package co.edu.uptc.models;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -11,12 +8,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import co.edu.uptc.pojos.Ufo;
 import java.awt.Point;
 import java.awt.Rectangle;
-
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +28,8 @@ public class UfoSocketServer {
     private int spawnRate;
     private int speed;
     private int numberofUfos;
-    private PrintWriter clientOut;
+    private List<ClientHandler> clients;
+    private ClientHandler adminClient;
     private Gson gson;
 
     public UfoSocketServer() {
@@ -41,6 +37,7 @@ public class UfoSocketServer {
         ufoRunner = new UfoRunner(this);
         spawnRunner = new UfoSpawnRunner(this);
         this.trajectoryPoints = new ArrayList<>();
+        this.clients = new ArrayList<>();
         gson = new Gson();
     }
 
@@ -75,8 +72,14 @@ public class UfoSocketServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
-                ;
-                handleClient(clientSocket);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, this);
+                clients.add(clientHandler);
+                if (adminClient == null) {
+                    adminClient = clientHandler;
+                    adminClient.setAdmin(true);
+                    System.out.println("Cliente administrador asignado: " + clientSocket.getInetAddress().getHostAddress());
+                }
+                new Thread(clientHandler).start();
             }
         } catch (BindException e) {
             System.out.println("Error: El puerto " + port + " ya está en uso.");
@@ -85,52 +88,18 @@ public class UfoSocketServer {
         }
     }
 
-    private void handleClient(Socket clientSocket) {
-        try {
-            clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                System.out.println("Recibido: " + inputLine);
-                if (inputLine.contains("NUMBER_OF_UFOS")) {
-                    handleNumberOfUfos(inputLine);
-                } else if (inputLine.contains("SPAWN_RATE")) {
-                    handleSpawnRate(inputLine);
-                } else if (inputLine.contains("SPEED")) {
-                    handleSpeed(inputLine);
-                } else if (inputLine.contains("START_GAME")) {
-                    startGame();
-                    incrementConectedPlayersOrder();
-                } else if (inputLine.contains("REQUEST_UFO_LIST")) {
-                    sendUfoList();
-                } else if (inputLine.contains("UFO_TRAJECTORY")) {
-                    handleTrajectoryFromClient(inputLine);
-                } else if (inputLine.contains("SELECTED_POINT")) {
-                    handleSelectedPointFromClient(inputLine);
-                } else {
-                    clientOut.println("Eco: " + inputLine);
-                }
-            }
-        } catch (NoSuchElementException e) {
-            System.out.println("El cliente cerró la conexión.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                clientSocket.close();
-                System.out.println("Conexión con el cliente cerrada.");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void sendUfoList() {
+        String ufoListJson = gson.toJson(ufos);
+        broadcastMessage("UFO_LIST " + ufoListJson);
+    }
+
+    public void broadcastMessage(String message) {
+        for (ClientHandler client : clients) {
+            client.sendMessage(message);
         }
     }
 
-    private void sendUfoList() {
-        String ufoListJson = gson.toJson(ufos);
-        clientOut.println("UFO_LIST " + ufoListJson);
-    }
-
-    private void handleNumberOfUfos(String inputLine) {
+    public void handleNumberOfUfos(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
             int numberOfUfos = Integer.parseInt(parts[2]);
@@ -140,42 +109,52 @@ public class UfoSocketServer {
         }
     }
 
-    private void handleSpawnRate(String inputLine) {
+    public void handleSpawnRate(String inputLine) {
         try {
+            System.out.println("handleSpawnRate - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int spawnRate = Integer.parseInt(parts[2]);
             this.spawnRate = spawnRate;
+            System.out.println("Spawn rate set to: " + spawnRate);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de mensaje inválido en handleSpawnRate.");
+            e.printStackTrace();
         }
     }
 
-    private void handleSpeed(String inputLine) {
+    public void handleSpeed(String inputLine) {
         try {
+            System.out.println("handleSpeed - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int speed = Integer.parseInt(parts[2]);
             this.speed = speed;
+            System.out.println("Speed set to: " + speed);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de mensaje inválido en handleSpeed.");
+            e.printStackTrace();
         }
     }
 
-    public void handleTrajectoryFromClient(String inputline) {
+    public void handleTrajectoryFromClient(String inputLine) {
         try {
-            String[] parts = inputline.split(" ");
+            System.out.println("handleTrajectoryFromClient - inputLine: " + inputLine);
+            String[] parts = inputLine.split(" ");
             String trajectoryJson = parts[2];
             ArrayList<Point> trajectoryPoints = gson.fromJson(trajectoryJson,
                     new com.google.gson.reflect.TypeToken<ArrayList<Point>>() {
                     }.getType());
             this.trajectoryPoints = trajectoryPoints;
-            setSelectedTrayectory();
+            setSelectedTrajectory();
+            System.out.println("Trajectory points set to: " + trajectoryPoints);
         } catch (Exception e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de mensaje inválido en handleTrajectoryFromClient.");
+            e.printStackTrace();
         }
     }
 
     public void handleSelectedPointFromClient(String inputLine) {
         try {
+            System.out.println("handleSelectedPointFromClient - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int x = Integer.parseInt(parts[2]);
             int y = Integer.parseInt(parts[3]);
@@ -183,7 +162,8 @@ public class UfoSocketServer {
             selectUfo(selectedPoint);
             System.out.println("Punto seleccionado recibido: " + selectedPoint);
         } catch (Exception e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de mensaje inválido en handleSelectedPointFromClient.");
+            e.printStackTrace();
         }
     }
 
@@ -199,78 +179,59 @@ public class UfoSocketServer {
     }
 
     public void updateUfoCountOrder(int size) {
-        if (clientOut != null) {
-            clientOut.println("UPDATE_UFO_COUNT " + size);
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("UPDATE_UFO_COUNT " + size);
     }
 
     public void playCrashSoundOrder() {
-        if (clientOut != null) {
-            clientOut.println("PLAY_CRASH_SOUND");
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("PLAY_CRASH_SOUND");
     }
 
     public void incrementCrashedUfoCountOrder(int crashedUfos) {
-        if (clientOut != null) {
-            clientOut.println("INCREMENT_CRASHED_UFO_COUNT " + crashedUfos);
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("INCREMENT_CRASHED_UFO_COUNT " + crashedUfos);
     }
 
     public void playLandingSoundOrder() {
-        if (clientOut != null) {
-            clientOut.println("PLAY_LANDING_SOUND");
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("PLAY_LANDING_SOUND");
     }
 
     public void incrementLandedUfoCountOrder() {
-        if (clientOut != null) {
-            clientOut.println("INCREMENT_LANDED_UFO_COUNT");
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("INCREMENT_LANDED_UFO_COUNT");
     }
 
     public void updateUfosOrder() {
-        if (clientOut != null) {
-            clientOut.println("UPDATE_UFOS");
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+        broadcastMessage("UPDATE_UFOS");
     }
 
-    public void incrementConectedPlayersOrder() {
-        if (clientOut != null) {
-            clientOut.println("INCREMENT_CONNECTED_PLAYERS");
-        } else {
-            System.out.println("No hay cliente conectado para enviar la orden.");
-        }
+    public void incrementConnectedPlayersOrder() {
+        broadcastMessage("INCREMENT_CONNECTED_PLAYERS");
     }
 
     private void selectUfo(Point point) {
+        boolean ufoSelected = false;
         for (Ufo ufo : ufos) {
             Rectangle bounds = new Rectangle(ufo.getPosition().x, ufo.getPosition().y, Ufo.UFO_WIDTH, Ufo.UFO_HEIGHT);
             if (bounds.contains(point)) {
                 ufo.setSelected(true);
+                System.out.println("UFO seleccionado: " + ufo);
                 trajectoryPoints.clear();
+                ufoSelected = true;
             } else {
                 ufo.setSelected(false);
             }
         }
+
+        if (!ufoSelected) {
+            System.out.println("No se seleccionó ningún UFO.");
+        }
+
         updateUfosOrder();
     }
 
-    private void setSelectedTrayectory() {
+    private void setSelectedTrajectory() {
         for (Ufo ufo : ufos) {
             if (ufo.isSelected()) {
                 ufo.setTrajectory(trajectoryPoints);
+                System.out.println("Trajectory points: " + trajectoryPoints);
             }
         }
     }
