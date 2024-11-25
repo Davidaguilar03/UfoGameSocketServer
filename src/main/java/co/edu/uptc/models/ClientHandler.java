@@ -39,10 +39,10 @@ public class ClientHandler implements Runnable {
         try {
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Recibido: " + inputLine);
-                if (isAdmin) {
-                    if (inputLine.contains("START_GAME")) {
-                        server.startGame();
-                    }
+                if (isAdmin && inputLine.contains("START_GAME")) {
+                    server.startGame();
+                    server.forceStartGameOrder();
+                    server.incrementConnectedPlayersOrder(server.getClients().size());
                 }
                 if (inputLine.contains("NUMBER_OF_UFOS")) {
                     server.handleNumberOfUfos(inputLine);
