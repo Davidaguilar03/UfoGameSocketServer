@@ -75,6 +75,7 @@ public class UfoSocketServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
+                ;
                 handleClient(clientSocket);
             }
         } catch (BindException e) {
@@ -88,7 +89,6 @@ public class UfoSocketServer {
         try {
             clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Recibido: " + inputLine);
@@ -100,6 +100,7 @@ public class UfoSocketServer {
                     handleSpeed(inputLine);
                 } else if (inputLine.contains("START_GAME")) {
                     startGame();
+                    incrementConectedPlayersOrder();
                 } else if (inputLine.contains("REQUEST_UFO_LIST")) {
                     sendUfoList();
                 } else if (inputLine.contains("UFO_TRAJECTORY")) {
@@ -240,6 +241,14 @@ public class UfoSocketServer {
     public void updateUfosOrder() {
         if (clientOut != null) {
             clientOut.println("UPDATE_UFOS");
+        } else {
+            System.out.println("No hay cliente conectado para enviar la orden.");
+        }
+    }
+
+    public void incrementConectedPlayersOrder() {
+        if (clientOut != null) {
+            clientOut.println("INCREMENT_CONNECTED_PLAYERS");
         } else {
             System.out.println("No hay cliente conectado para enviar la orden.");
         }
