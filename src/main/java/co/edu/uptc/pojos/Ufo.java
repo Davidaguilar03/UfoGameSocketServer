@@ -11,6 +11,8 @@ import java.awt.Rectangle;
 public class Ufo implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private int id;
+    private boolean isSelected;
     private Point position;
     private int speed;
     private double angle;
@@ -27,6 +29,7 @@ public class Ufo implements Serializable {
         this.isMoving = true;
         this.trajectory = new ArrayList<>();
         this.lastAngle = angle;
+        this.isSelected = false;
     }
 
     public void setTrajectory(List<Point> trajectory) {

@@ -15,7 +15,7 @@ public class UfoSpawnRunner implements Runnable {
     @Override
     public void run() {
         while (createdUfos < ufoSocketServer.getNumberofUfos()) {
-            ufoSocketServer.addUfo(ufoSocketServer.getSpeed());
+            ufoSocketServer.addUfo(ufoSocketServer.getSpeed(), createdUfos);
             createdUfos++;
             ufoSocketServer.updateUfosOrder();
             try {

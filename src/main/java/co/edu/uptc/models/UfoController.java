@@ -19,7 +19,7 @@ public class UfoController {
         this.random = new Random();
     }
 
-    public Ufo createUfo(int speed) {
+    public Ufo createUfo(int speed, int id) {
         Point randomPosition = new Point(getRandomX(), getRandomY());
         double randomAngle = getRandomAngle();
         return new Ufo(speed, randomPosition, randomAngle);
