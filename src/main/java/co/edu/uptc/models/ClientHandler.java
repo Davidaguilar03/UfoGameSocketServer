@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
                 if (isAdmin && inputLine.contains("START_GAME")) {
                     server.startGame();
                     server.forceStartGameOrder();
-                    server.incrementConnectedPlayersOrder(server.getClients().size());
+                    server.updateConnectedPlayersOrder(server.getClients().size());
                 }
                 if (inputLine.contains("NUMBER_OF_UFOS")) {
                     server.handleNumberOfUfos(inputLine);
@@ -65,6 +65,7 @@ public class ClientHandler implements Runnable {
         } finally {
             try {
                 clientSocket.close();
+                server.updateConnectedPlayersOrder(-1);
                 System.out.println("Conexión con el cliente cerrada.");
             } catch (IOException e) {
                 e.printStackTrace();

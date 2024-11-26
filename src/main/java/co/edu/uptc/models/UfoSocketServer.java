@@ -202,8 +202,8 @@ public class UfoSocketServer {
         broadcastMessage("UPDATE_UFOS");
     }
 
-    public void incrementConnectedPlayersOrder(int size) {
-        broadcastMessage("INCREMENT_CONNECTED_PLAYERS " + size);
+    public void updateConnectedPlayersOrder(int size) {
+        broadcastMessage("UPDATE_CONNECTED_PLAYERS " + size);
     }
 
     public void forceStartGameOrder() {
