@@ -15,6 +15,9 @@ import java.awt.Rectangle;
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 @Getter
 @Setter
@@ -66,7 +69,7 @@ public class UfoSocketServer {
     public void startServer(int port) {
         try {
             serverSocket = new ServerSocket(port);
-            String serverIp = InetAddress.getLocalHost().getHostAddress();
+            String serverIp = getEthernetIp();
             System.out.println("Servidor iniciado en la IP " + serverIp + " y puerto " + port);
 
             while (true) {
@@ -86,6 +89,24 @@ public class UfoSocketServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getEthernetIp() throws SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface networkInterface = interfaces.nextElement();
+            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+                continue;
+            }
+            Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+            while (addresses.hasMoreElements()) {
+                InetAddress address = addresses.nextElement();
+                if (address.isSiteLocalAddress()) {
+                    return address.getHostAddress();
+                }
+            }
+        }
+        return null;
     }
 
     public void sendUfoList() {
