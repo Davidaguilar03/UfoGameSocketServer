@@ -6,27 +6,28 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import lombok.Setter;
+
+@Setter
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
-    private UfoSocketServer server;
     private PrintWriter out;
     private BufferedReader in;
+    private UfoSocketServer server;
     private boolean isAdmin;
+    private ServerMethodMap methodMap;
 
-    public ClientHandler(Socket socket, UfoSocketServer server) {
+    public ClientHandler(Socket socket, UfoSocketServer server, boolean isAdmin) {
         this.clientSocket = socket;
         this.server = server;
-        this.isAdmin = false;
+        this.isAdmin = isAdmin;
+        this.methodMap = new ServerMethodMap(server);
         try {
             this.out = new PrintWriter(clientSocket.getOutputStream(), true);
             this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void setAdmin(boolean isAdmin) {
-        this.isAdmin = isAdmin;
     }
 
     public void sendMessage(String message) {
@@ -40,32 +41,24 @@ public class ClientHandler implements Runnable {
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Recibido: " + inputLine);
                 if (isAdmin && inputLine.contains("START_GAME")) {
-                    server.startGame();
-                    server.forceStartGameOrder();
-                    server.updateConnectedPlayersOrder(server.getClients().size());
-                } else if(isAdmin && inputLine.contains("SELECTED_UFO_DESIGN ")) {
+                    methodMap.run("START_GAME", inputLine);
+                } else if (isAdmin && inputLine.contains("UFO_IMAGE")) {
                     server.handleSelectedUfoDesign(inputLine);
                 } else if (!isAdmin && inputLine.contains("CHECK_CLIENT_MODE")) {
-                   server.setClientModeOrder(); 
-                }
-                if (inputLine.contains("NUMBER_OF_UFOS")) {
-                    server.handleNumberOfUfos(inputLine);
-                } else if (inputLine.contains("SPAWN_RATE")) {
-                    server.handleSpawnRate(inputLine);
-                } else if (inputLine.contains("SPEED")) {
-                    server.handleSpeed(inputLine);
-                } else if (inputLine.contains("REQUEST_UFO_LIST")) {
-                    server.sendUfoList();
-                } else if (inputLine.contains("UFO_TRAJECTORY")) {
-                    server.handleTrajectoryFromClient(inputLine);
-                } else if (inputLine.contains("SELECTED_POINT")) {
-                    server.handleSelectedPointFromClient(inputLine);
-                } else if (inputLine.contains("UFO_DESIGN ")) {
-                    server.handleSelectedUfoDesign(inputLine);
-                } else if (inputLine.contains("REQUEST_UFO_DESIGN")) {
-                    server.sendSelectedUfoDesign();
+                    server.setClientModeOrder();
                 } else {
-                    sendMessage("Eco: " + inputLine);
+                    String[] keys = {"NUMBER_OF_UFOS", "SPAWN_RATE", "SPEED", "REQUEST_UFO_LIST", "UFO_TRAJECTORY", "SELECTED_POINT", "REQUEST_UFO_DESIGN"};
+                    boolean handled = false;
+                    for (String key : keys) {
+                        if (inputLine.contains(key)) {
+                            methodMap.run(key, inputLine);
+                            handled = true;
+                            break;
+                        }
+                    }
+                    if (!handled) {
+                        sendMessage("Eco: " + inputLine);
+                    }
                 }
             }
         } catch (IOException e) {

@@ -76,7 +76,7 @@ public class UfoSocketServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, this, adminClient == null);
                 clients.add(clientHandler);
                 if (adminClient == null) {
                     adminClient = clientHandler;
@@ -116,13 +116,14 @@ public class UfoSocketServer {
     }
 
     public void sendSelectedUfoDesign() {
-        broadcastMessage("UFO_DESIGN " + selectedUfoDesign);
+        broadcastMessage("UFO_IMAGE " + selectedUfoDesign);
+        System.out.println("Selected UFO design sent to clients: " + selectedUfoDesign);
     }
 
     public void setClientModeOrder() {
         for (ClientHandler client : clients) {
             if (client != adminClient) {
-                client.sendMessage("SET_CLIENT_MODE"); 
+                client.sendMessage("SET_CLIENT_MODE "); 
             }
         }
     }
@@ -139,18 +140,19 @@ public class UfoSocketServer {
             int numberOfUfos = Integer.parseInt(parts[2]);
             this.numberofUfos = numberOfUfos;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de Numero de Ufos inválido.");
         }
     }
 
     public void handleSelectedUfoDesign(String inputline){
         try {
+            System.out.println("handleSelectedUfoDesign - inputLine: " + inputline);
             String[] parts = inputline.split(" ");
             String selectedUfoDesign = parts[2];
             this.selectedUfoDesign = selectedUfoDesign;
             System.out.println("Selected UFO design set to: " + selectedUfoDesign);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido.");
+            System.out.println("Formato de Diseño de Ufo inválido.");
         }
     }
 
@@ -162,7 +164,7 @@ public class UfoSocketServer {
             this.spawnRate = spawnRate;
             System.out.println("Spawn rate set to: " + spawnRate);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido en handleSpawnRate.");
+            System.out.println("Formato de Aparicion inválido ");
             e.printStackTrace();
         }
     }
@@ -175,7 +177,7 @@ public class UfoSocketServer {
             this.speed = speed;
             System.out.println("Speed set to: " + speed);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Formato de mensaje inválido en handleSpeed.");
+            System.out.println("Formato de Velocidad inválido");
             e.printStackTrace();
         }
     }
@@ -192,7 +194,7 @@ public class UfoSocketServer {
             setSelectedTrajectory();
             System.out.println("Trajectory points set to: " + trajectoryPoints);
         } catch (Exception e) {
-            System.out.println("Formato de mensaje inválido en handleTrajectoryFromClient.");
+            System.out.println("Formato de Trayectoria Inválido.");
             e.printStackTrace();
         }
     }
@@ -207,7 +209,7 @@ public class UfoSocketServer {
             selectUfo(selectedPoint);
             System.out.println("Punto seleccionado recibido: " + selectedPoint);
         } catch (Exception e) {
-            System.out.println("Formato de mensaje inválido en handleSelectedPointFromClient.");
+            System.out.println("Formato de Punto selecionado inválido");
             e.printStackTrace();
         }
     }
@@ -228,7 +230,7 @@ public class UfoSocketServer {
     }
 
     public void playCrashSoundOrder() {
-        broadcastMessage("PLAY_CRASH_SOUND");
+        broadcastMessage("PLAY_CRASH_SOUND ");
     }
 
     public void incrementCrashedUfoCountOrder(int crashedUfos) {
@@ -236,15 +238,15 @@ public class UfoSocketServer {
     }
 
     public void playLandingSoundOrder() {
-        broadcastMessage("PLAY_LANDING_SOUND");
+        broadcastMessage("PLAY_LANDING_SOUND ");
     }
 
     public void incrementLandedUfoCountOrder() {
-        broadcastMessage("INCREMENT_LANDED_UFO_COUNT");
+        broadcastMessage("INCREMENT_LANDED_UFO_COUNT ");
     }
 
     public void updateUfosOrder() {
-        broadcastMessage("UPDATE_UFOS");
+        broadcastMessage("UPDATE_UFOS ");
     }
 
     public void updateConnectedPlayersOrder(int size) {
@@ -252,7 +254,7 @@ public class UfoSocketServer {
     }
 
     public void forceStartGameOrder() {
-        broadcastMessage("FORCE_START_GAME");
+        broadcastMessage("FORCE_START_GAME ");
     }
 
     private void selectUfo(Point point) {
