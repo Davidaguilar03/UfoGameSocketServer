@@ -31,6 +31,7 @@ public class UfoSocketServer {
     private int spawnRate;
     private int speed;
     private int numberofUfos;
+    private String selectedUfoDesign;
     private List<ClientHandler> clients;
     private ClientHandler adminClient;
     private Gson gson;
@@ -114,6 +115,10 @@ public class UfoSocketServer {
         broadcastMessage("UFO_LIST " + ufoListJson);
     }
 
+    public void sendSelectedUfoDesign() {
+        broadcastMessage("UFO_DESIGN " + selectedUfoDesign);
+    }
+
     public void broadcastMessage(String message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
@@ -125,6 +130,17 @@ public class UfoSocketServer {
             String[] parts = inputLine.split(" ");
             int numberOfUfos = Integer.parseInt(parts[2]);
             this.numberofUfos = numberOfUfos;
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            System.out.println("Formato de mensaje inválido.");
+        }
+    }
+
+    public void handleSelectedUfoDesign(String inputline){
+        try {
+            String[] parts = inputline.split(" ");
+            String selectedUfoDesign = parts[2];
+            this.selectedUfoDesign = selectedUfoDesign;
+            System.out.println("Selected UFO design set to: " + selectedUfoDesign);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de mensaje inválido.");
         }
