@@ -45,6 +45,8 @@ public class ClientHandler implements Runnable {
                     server.updateConnectedPlayersOrder(server.getClients().size());
                 } else if(isAdmin && inputLine.contains("SELECTED_UFO_DESIGN ")) {
                     server.handleSelectedUfoDesign(inputLine);
+                } else if (!isAdmin && inputLine.contains("CHECK_CLIENT_MODE")) {
+                   server.setClientModeOrder(); 
                 }
                 if (inputLine.contains("NUMBER_OF_UFOS")) {
                     server.handleNumberOfUfos(inputLine);
@@ -62,9 +64,7 @@ public class ClientHandler implements Runnable {
                     server.handleSelectedUfoDesign(inputLine);
                 } else if (inputLine.contains("REQUEST_UFO_DESIGN")) {
                     server.sendSelectedUfoDesign();
-                }
-                
-                else {
+                } else {
                     sendMessage("Eco: " + inputLine);
                 }
             }

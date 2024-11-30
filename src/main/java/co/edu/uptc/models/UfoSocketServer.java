@@ -119,6 +119,14 @@ public class UfoSocketServer {
         broadcastMessage("UFO_DESIGN " + selectedUfoDesign);
     }
 
+    public void setClientModeOrder() {
+        for (ClientHandler client : clients) {
+            if (client != adminClient) {
+                client.sendMessage("SET_CLIENT_MODE"); 
+            }
+        }
+    }
+
     public void broadcastMessage(String message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
