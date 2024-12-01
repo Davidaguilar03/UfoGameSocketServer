@@ -50,7 +50,6 @@ public class ClientHandler implements Runnable {
     private void processClientInput() throws IOException {
         String inputLine;
         while ((inputLine = in.readLine()) != null) {
-            System.out.println("Recibido: " + inputLine);
             if (!handleAdminCommands(inputLine) && !handleClientCommands(inputLine)) {
                 sendMessage("Eco: " + inputLine);
             }
