@@ -292,7 +292,6 @@ public class UfoSocketServer {
 
     private void selectUfo(Ufo ufo) {
         ufo.setSelected(true);
-        System.out.println("UFO seleccionado: " + ufo);
         trajectoryPoints.clear();
     }
 
