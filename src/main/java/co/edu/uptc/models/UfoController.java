@@ -112,22 +112,36 @@ public class UfoController {
         }
     }
 
-    private void moveToNextPoint(Ufo ufo, Point currentPos, double speed) {
+    public void moveToNextPoint(Ufo ufo, Point currentPos, double speed) {
         Point targetPos = ufo.getNextPoint();
         int deltaX = targetPos.x - currentPos.x;
         int deltaY = targetPos.y - currentPos.y;
-        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        double distance = calculateDistance(deltaX, deltaY);
+
         if (distance > 0) {
-            double angle = Math.atan2(deltaY, deltaX);
+            double angle = calculateAngle(deltaY, deltaX);
             ufo.updateAngle(angle);
-            double normalizedSpeed = Math.min(speed, distance);
-            int moveX = (int) (normalizedSpeed * Math.cos(angle));
-            int moveY = (int) (normalizedSpeed * Math.sin(angle));
-            currentPos.translate(moveX, moveY);
-            if (distance <= speed) {
-                currentPos.setLocation(targetPos);
-                ufo.removeReachedPoint();
-            }
+            moveUfo(ufo, currentPos, speed, distance, angle, targetPos);
+        }
+    }
+
+    private double calculateDistance(int deltaX, int deltaY) {
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    }
+
+    private double calculateAngle(int deltaY, int deltaX) {
+        return Math.atan2(deltaY, deltaX);
+    }
+
+    private void moveUfo(Ufo ufo, Point currentPos, double speed, double distance, double angle, Point targetPos) {
+        double normalizedSpeed = Math.min(speed, distance);
+        int moveX = (int) (normalizedSpeed * Math.cos(angle));
+        int moveY = (int) (normalizedSpeed * Math.sin(angle));
+        currentPos.translate(moveX, moveY);
+
+        if (distance <= speed) {
+            currentPos.setLocation(targetPos);
+            ufo.removeReachedPoint();
         }
     }
 

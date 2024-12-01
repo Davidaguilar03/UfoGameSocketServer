@@ -69,22 +69,8 @@ public class UfoSocketServer {
 
     public void startServer(int port) {
         try {
-            serverSocket = new ServerSocket(port);
-            String serverIp = getEthernetIp();
-            System.out.println("Servidor iniciado en la IP " + serverIp + " y puerto " + port);
-
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this, adminClient == null);
-                clients.add(clientHandler);
-                if (adminClient == null) {
-                    adminClient = clientHandler;
-                    adminClient.setAdmin(true);
-                    System.out.println("Cliente administrador asignado: " + clientSocket.getInetAddress().getHostAddress());
-                }
-                new Thread(clientHandler).start();
-            }
+            initializeServerSocket(port);
+            acceptClients();
         } catch (BindException e) {
             System.out.println("Error: El puerto " + port + " ya está en uso.");
         } catch (IOException e) {
@@ -92,19 +78,56 @@ public class UfoSocketServer {
         }
     }
 
+    private void initializeServerSocket(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        String serverIp = getEthernetIp();
+        System.out.println("Servidor iniciado en la IP " + serverIp + " y puerto " + port);
+    }
+
+    private void acceptClients() throws IOException {
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
+            ClientHandler clientHandler = new ClientHandler(clientSocket, this, adminClient == null);
+            clients.add(clientHandler);
+            assignAdminClient(clientHandler);
+            new Thread(clientHandler).start();
+        }
+    }
+
+    private void assignAdminClient(ClientHandler clientHandler) {
+        if (adminClient == null) {
+            adminClient = clientHandler;
+            adminClient.setAdmin(true);
+            System.out.println("Cliente administrador asignado: "
+                    + clientHandler.getClientSocket().getInetAddress().getHostAddress());
+        }
+    }
+
     private String getEthernetIp() throws SocketException {
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface networkInterface = interfaces.nextElement();
-            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
-                continue;
-            }
-            Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-            while (addresses.hasMoreElements()) {
-                InetAddress address = addresses.nextElement();
-                if (address.isSiteLocalAddress()) {
-                    return address.getHostAddress();
+            if (isValidNetworkInterface(networkInterface)) {
+                String ip = getSiteLocalAddress(networkInterface);
+                if (ip != null) {
+                    return ip;
                 }
+            }
+        }
+        return null;
+    }
+
+    private boolean isValidNetworkInterface(NetworkInterface networkInterface) throws SocketException {
+        return !networkInterface.isLoopback() && networkInterface.isUp();
+    }
+
+    private String getSiteLocalAddress(NetworkInterface networkInterface) {
+        Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            InetAddress address = addresses.nextElement();
+            if (address.isSiteLocalAddress()) {
+                return address.getHostAddress();
             }
         }
         return null;
@@ -123,7 +146,7 @@ public class UfoSocketServer {
     public void setClientModeOrder() {
         for (ClientHandler client : clients) {
             if (client != adminClient) {
-                client.sendMessage("SET_CLIENT_MODE "); 
+                client.sendMessage("SET_CLIENT_MODE ");
             }
         }
     }
@@ -144,7 +167,7 @@ public class UfoSocketServer {
         }
     }
 
-    public void handleSelectedUfoDesign(String inputline){
+    public void handleSelectedUfoDesign(String inputline) {
         try {
             System.out.println("handleSelectedUfoDesign - inputLine: " + inputline);
             String[] parts = inputline.split(" ");
@@ -260,22 +283,32 @@ public class UfoSocketServer {
     private void selectUfo(Point point) {
         boolean ufoSelected = false;
         for (Ufo ufo : ufos) {
-            Rectangle bounds = new Rectangle(ufo.getPosition().x, ufo.getPosition().y, Ufo.UFO_WIDTH, Ufo.UFO_HEIGHT);
-            if (bounds.contains(point)) {
-                ufo.setSelected(true);
-                System.out.println("UFO seleccionado: " + ufo);
-                trajectoryPoints.clear();
+            if (isUfoSelected(ufo, point)) {
+                selectUfo(ufo);
                 ufoSelected = true;
             } else {
-                ufo.setSelected(false);
+                deselectUfo(ufo);
             }
         }
-
         if (!ufoSelected) {
             System.out.println("No se seleccionó ningún UFO.");
         }
-
         updateUfosOrder();
+    }
+
+    private boolean isUfoSelected(Ufo ufo, Point point) {
+        Rectangle bounds = new Rectangle(ufo.getPosition().x, ufo.getPosition().y, Ufo.UFO_WIDTH, Ufo.UFO_HEIGHT);
+        return bounds.contains(point);
+    }
+
+    private void selectUfo(Ufo ufo) {
+        ufo.setSelected(true);
+        System.out.println("UFO seleccionado: " + ufo);
+        trajectoryPoints.clear();
+    }
+
+    private void deselectUfo(Ufo ufo) {
+        ufo.setSelected(false);
     }
 
     private void setSelectedTrajectory() {
