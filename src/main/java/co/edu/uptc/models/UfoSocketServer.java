@@ -140,7 +140,6 @@ public class UfoSocketServer {
 
     public void sendSelectedUfoDesign() {
         broadcastMessage("UFO_IMAGE " + selectedUfoDesign);
-        System.out.println("Selected UFO design sent to clients: " + selectedUfoDesign);
     }
 
     public void setClientModeOrder() {
@@ -169,11 +168,9 @@ public class UfoSocketServer {
 
     public void handleSelectedUfoDesign(String inputline) {
         try {
-            System.out.println("handleSelectedUfoDesign - inputLine: " + inputline);
             String[] parts = inputline.split(" ");
             String selectedUfoDesign = parts[2];
             this.selectedUfoDesign = selectedUfoDesign;
-            System.out.println("Selected UFO design set to: " + selectedUfoDesign);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Diseño de Ufo inválido.");
         }
@@ -181,11 +178,9 @@ public class UfoSocketServer {
 
     public void handleSpawnRate(String inputLine) {
         try {
-            System.out.println("handleSpawnRate - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int spawnRate = Integer.parseInt(parts[2]);
             this.spawnRate = spawnRate;
-            System.out.println("Spawn rate set to: " + spawnRate);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Aparicion inválido ");
             e.printStackTrace();
@@ -194,11 +189,9 @@ public class UfoSocketServer {
 
     public void handleSpeed(String inputLine) {
         try {
-            System.out.println("handleSpeed - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int speed = Integer.parseInt(parts[2]);
             this.speed = speed;
-            System.out.println("Speed set to: " + speed);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Velocidad inválido");
             e.printStackTrace();
@@ -207,7 +200,6 @@ public class UfoSocketServer {
 
     public void handleTrajectoryFromClient(String inputLine) {
         try {
-            System.out.println("handleTrajectoryFromClient - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             String trajectoryJson = parts[2];
             ArrayList<Point> trajectoryPoints = gson.fromJson(trajectoryJson,
@@ -215,7 +207,6 @@ public class UfoSocketServer {
                     }.getType());
             this.trajectoryPoints = trajectoryPoints;
             setSelectedTrajectory();
-            System.out.println("Trajectory points set to: " + trajectoryPoints);
         } catch (Exception e) {
             System.out.println("Formato de Trayectoria Inválido.");
             e.printStackTrace();
@@ -224,13 +215,11 @@ public class UfoSocketServer {
 
     public void handleSelectedPointFromClient(String inputLine) {
         try {
-            System.out.println("handleSelectedPointFromClient - inputLine: " + inputLine);
             String[] parts = inputLine.split(" ");
             int x = Integer.parseInt(parts[2]);
             int y = Integer.parseInt(parts[3]);
             this.selectedPoint = new Point(x, y);
             selectUfo(selectedPoint);
-            System.out.println("Punto seleccionado recibido: " + selectedPoint);
         } catch (Exception e) {
             System.out.println("Formato de Punto selecionado inválido");
             e.printStackTrace();
@@ -315,7 +304,6 @@ public class UfoSocketServer {
         for (Ufo ufo : ufos) {
             if (ufo.isSelected()) {
                 ufo.setTrajectory(trajectoryPoints);
-                System.out.println("Trajectory points: " + trajectoryPoints);
             }
         }
     }
