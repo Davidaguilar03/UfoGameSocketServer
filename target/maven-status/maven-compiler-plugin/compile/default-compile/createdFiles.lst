@@ -1,0 +1,10 @@
+co\edu\uptc\models\UfoController.class
+co\edu\uptc\models\ServerMethodMap.class
+co\edu\uptc\models\UfoSocketServer$1.class
+co\edu\uptc\Main.class
+co\edu\uptc\models\ServerMethodMap$MethodLibrary.class
+co\edu\uptc\pojos\Ufo.class
+co\edu\uptc\models\UfoSocketServer.class
+co\edu\uptc\models\UfoSpawnRunner.class
+co\edu\uptc\models\ClientHandler.class
+co\edu\uptc\models\UfoRunner.class

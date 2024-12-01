@@ -4,14 +4,14 @@ import co.edu.uptc.models.UfoSocketServer;
 
 public class Main {
     public static void main(String[] args) {
-        // if (!validateArgs(args)) {
-        //     System.exit(1);
-        // }
-        // int port = parsePort(args[0]);
-        // if (port == -1) {
-        //     System.exit(1);
-        // }
-        startServer(1234);
+        if (!validateArgs(args)) {
+            System.exit(1);
+        }
+        int port = parsePort(args[0]);
+        if (port == -1) {
+            System.exit(1);
+        }
+        startServer(port);
     }
 
     private static boolean validateArgs(String[] args) {
