@@ -16,7 +16,7 @@ public class Main {
 
     private static boolean validateArgs(String[] args) {
         if (args.length != 1) {
-            System.out.println("Uso: java -jar target/ufogamesocketserver-1.0-SNAPSHOT-jar-with-dependencies.jar <puerto>");
+            System.out.println("Uso: java -jar UfoGameSocketServer.jar <puerto>");
             return false;
         }
         return true;
