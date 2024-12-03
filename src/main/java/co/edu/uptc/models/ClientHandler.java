@@ -34,16 +34,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendMessage(String message) {
-        out.println(message);
-    }
-
     @Override
     public void run() {
         try {
             processClientInput();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error en la comunicación con el cliente: " + e.getMessage());
         } finally {
             closeClientConnection();
         }
@@ -52,27 +48,15 @@ public class ClientHandler implements Runnable {
     private void processClientInput() throws IOException {
         String inputLine;
         while ((inputLine = in.readLine()) != null) {
-            if (!handleAdminCommands(inputLine) && !handleClientCommands(inputLine)) {
-                sendMessage("Eco: " + inputLine);
+            if (!handleInput(inputLine)) {
+                break;
             }
         }
     }
 
-    private boolean handleAdminCommands(String inputLine) {
-        if (isAdmin && inputLine.contains("START_GAME")) {
-            methodMap.run("START_GAME", inputLine);
-            return true;
-        } else if (isAdmin && inputLine.contains("UFO_IMAGE")) {
-            server.handleSelectedUfoDesign(inputLine);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean handleClientCommands(String inputLine) {
-        if (!isAdmin && inputLine.contains("CHECK_CLIENT_MODE")) {
-            server.setClientModeOrder();
-            return true;
+    private boolean handleInput(String inputLine) {
+        if (inputLine.contains("DISCONNECT")) {
+            return false;
         } else {
             String[] keys = { "NUMBER_OF_UFOS", "SPAWN_RATE", "SPEED", "REQUEST_UFO_LIST", "UFO_TRAJECTORY",
                     "SELECTED_POINT", "REQUEST_UFO_DESIGN", "REQUEST_USERS_LIST" };
@@ -94,7 +78,11 @@ public class ClientHandler implements Runnable {
             server.updateUserNameListOrder();
             System.out.println("Conexión con el cliente cerrada.");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al cerrar el socket del cliente: " + e.getMessage());
         }
+    }
+
+    public void sendMessage(String message) {
+        out.println(message);
     }
 }
