@@ -18,11 +18,13 @@ public class ClientHandler implements Runnable {
     private UfoSocketServer server;
     private boolean isAdmin;
     private ServerMethodMap methodMap;
+    private String username;
 
-    public ClientHandler(Socket socket, UfoSocketServer server, boolean isAdmin) {
+    public ClientHandler(Socket socket, UfoSocketServer server, boolean isAdmin, String username) {
         this.clientSocket = socket;
         this.server = server;
         this.isAdmin = isAdmin;
+        this.username = username;
         this.methodMap = new ServerMethodMap(server);
         try {
             this.out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -73,7 +75,7 @@ public class ClientHandler implements Runnable {
             return true;
         } else {
             String[] keys = { "NUMBER_OF_UFOS", "SPAWN_RATE", "SPEED", "REQUEST_UFO_LIST", "UFO_TRAJECTORY",
-                    "SELECTED_POINT", "REQUEST_UFO_DESIGN" };
+                    "SELECTED_POINT", "REQUEST_UFO_DESIGN", "REQUEST_USERS_LIST" };
             for (String key : keys) {
                 if (inputLine.contains(key)) {
                     methodMap.run(key, inputLine);
@@ -88,6 +90,8 @@ public class ClientHandler implements Runnable {
         try {
             clientSocket.close();
             server.updateConnectedPlayersOrder(-1);
+            server.removeUsernameFromList(username);
+            server.updateUserNameListOrder();
             System.out.println("Conexión con el cliente cerrada.");
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,6 +1,8 @@
 package co.edu.uptc.models;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -35,10 +37,12 @@ public class UfoSocketServer {
     private List<ClientHandler> clients;
     private ClientHandler adminClient;
     private Gson gson;
+    private List<String> usernameList;
 
     public UfoSocketServer() {
         this.ufos = new CopyOnWriteArrayList<>();
         ufoRunner = new UfoRunner(this);
+        usernameList = new ArrayList<>();
         spawnRunner = new UfoSpawnRunner(this);
         this.trajectoryPoints = new ArrayList<>();
         this.clients = new ArrayList<>();
@@ -87,9 +91,13 @@ public class UfoSocketServer {
     private void acceptClients() throws IOException {
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress());
-            ClientHandler clientHandler = new ClientHandler(clientSocket, this, adminClient == null);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            String[] Parts = in.readLine().split(" ",2);
+            String username = Parts[1];
+            System.out.println("Cliente conectado: " + clientSocket.getInetAddress().getHostAddress() + " Con Nombre de Usuario " + username);
+            ClientHandler clientHandler = new ClientHandler(clientSocket, this, adminClient == null, username);
             clients.add(clientHandler);
+            System.out.println("Clientes conectados: " + clients.size());
             assignAdminClient(clientHandler);
             new Thread(clientHandler).start();
         }
@@ -138,6 +146,22 @@ public class UfoSocketServer {
         broadcastMessage("UFO_LIST " + ufoListJson);
     }
 
+    public void sendUsernameList() {
+        for (ClientHandler clientHandler : clients) {
+            usernameList.add(clientHandler.getUsername());
+        }
+        String usernameListJson = gson.toJson(usernameList);
+        broadcastMessage("USERNAME_LIST " + usernameListJson);
+    }
+
+    public void removeUsernameFromList(String username) {
+       usernameList.remove(username);
+       String usernameListJson = gson.toJson(usernameList);
+        broadcastMessage("USERNAME_LIST " + usernameListJson);
+    }
+
+    
+
     public void sendSelectedUfoDesign() {
         broadcastMessage("UFO_IMAGE " + selectedUfoDesign);
     }
@@ -159,7 +183,7 @@ public class UfoSocketServer {
     public void handleNumberOfUfos(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
-            int numberOfUfos = Integer.parseInt(parts[2]);
+            int numberOfUfos = Integer.parseInt(parts[1]);
             this.numberofUfos = numberOfUfos;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Numero de Ufos inválido.");
@@ -169,7 +193,7 @@ public class UfoSocketServer {
     public void handleSelectedUfoDesign(String inputline) {
         try {
             String[] parts = inputline.split(" ");
-            String selectedUfoDesign = parts[2];
+            String selectedUfoDesign = parts[1];
             this.selectedUfoDesign = selectedUfoDesign;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Diseño de Ufo inválido.");
@@ -179,7 +203,7 @@ public class UfoSocketServer {
     public void handleSpawnRate(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
-            int spawnRate = Integer.parseInt(parts[2]);
+            int spawnRate = Integer.parseInt(parts[1]);
             this.spawnRate = spawnRate;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Aparicion inválido ");
@@ -190,7 +214,7 @@ public class UfoSocketServer {
     public void handleSpeed(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
-            int speed = Integer.parseInt(parts[2]);
+            int speed = Integer.parseInt(parts[1]);
             this.speed = speed;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.out.println("Formato de Velocidad inválido");
@@ -201,7 +225,7 @@ public class UfoSocketServer {
     public void handleTrajectoryFromClient(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
-            String trajectoryJson = parts[2];
+            String trajectoryJson = parts[1];
             ArrayList<Point> trajectoryPoints = gson.fromJson(trajectoryJson,
                     new com.google.gson.reflect.TypeToken<ArrayList<Point>>() {
                     }.getType());
@@ -216,8 +240,8 @@ public class UfoSocketServer {
     public void handleSelectedPointFromClient(String inputLine) {
         try {
             String[] parts = inputLine.split(" ");
-            int x = Integer.parseInt(parts[2]);
-            int y = Integer.parseInt(parts[3]);
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
             this.selectedPoint = new Point(x, y);
             selectUfo(selectedPoint);
         } catch (Exception e) {
@@ -263,6 +287,10 @@ public class UfoSocketServer {
 
     public void updateConnectedPlayersOrder(int size) {
         broadcastMessage("UPDATE_CONNECTED_PLAYERS " + size);
+    }
+
+    public void updateUserNameListOrder() {
+        broadcastMessage("UPDATE_PLAYERS_LIST ");
     }
 
     public void forceStartGameOrder() {

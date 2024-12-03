@@ -25,6 +25,7 @@ public class ServerMethodMap {
         addUfoImageMethod();
         addRequestUfoDesignMethod();
         addCheckClientModeMethod();
+        addRequestUsersListMethod();
     }
 
     private void addStartGameMethod() {
@@ -69,6 +70,10 @@ public class ServerMethodMap {
 
     private void addCheckClientModeMethod() {
         map.put("CHECK_CLIENT_MODE", inputLine -> server.setClientModeOrder());
+    }
+
+    private void addRequestUsersListMethod() {
+        map.put("REQUEST_USERS_LIST", inputLine -> server.sendUsernameList());
     }
 
     public void run(String key, String inputLine) {
